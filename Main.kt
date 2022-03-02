@@ -2,19 +2,30 @@ package phonebook
 
 import java.io.File
 import java.sql.Time
+import kotlin.math.floor
+import kotlin.math.sqrt
 
 const val PATH_TO_FOLDER = "/"
 
-data class SearchData(val findFile: List<String>, val leftToFind: List<String>, val directoryFile: List<String>)
+data class SearchData(
+    val findFile: List<String>,
+    val leftToFind: List<String>,
+    var directoryFile: List<String>,
+    var stopped: Boolean = false
+) {
+    fun updateDirectorySearch(newDirSearch: List<String>) {
+        directoryFile = newDirSearch
+    }
+}
 
 fun main() {
     val searchData = parseInput()
 
-    performLinearSearch(searchData)
+    val limit = performLinearSearch(searchData)
 
     println("Start searching (bubble sort + jump search)...")
     val sortStartTime = System.currentTimeMillis()
-    val sortedSearchData = performBubbleSort(searchData)
+    val sortedSearchData = performBubbleSort(searchData, limit)
     val sortEndTime = System.currentTimeMillis()
     val sortTotalTime = sortStartTime - sortEndTime
     val jumpSearchStartTime = System.currentTimeMillis()
@@ -31,16 +42,85 @@ fun main() {
             )
         }"
     )
-    println("Sorting time: ${getTime(Time(sortTotalTime).time)}")
+    println("Sorting time: ${getTime(Time(sortTotalTime).time)}.${checkStopTime(sortedSearchData)}")
     println("Searching time: ${getTime(Time(jumpSearchTotalTime).time)}")
 }
 
-fun performBubbleSort(searchData: SearchData): SearchData {
+fun checkStopTime(sortedSearchData: SearchData): String {
+    return if (sortedSearchData.stopped) " - STOPPED, moved to linear search" else ""
+}
+
+fun performBubbleSort(searchData: SearchData, limit: Long): SearchData {
+    val startTimer = System.currentTimeMillis()
+    val updateDirResults = searchData.directoryFile.toMutableList()
+    var allItemsSorted = false
+
+    do {
+        var check = false
+        val reachedLimit = System.currentTimeMillis() - startTimer > limit * 20
+        if (reachedLimit) {
+            searchData.stopped = true
+        }
+        for (index in 0..searchData.directoryFile.size - 2) {
+            val firstItem = updateDirResults[index].split(" ")
+            val secondItem = updateDirResults[index + 1].split(" ")
+            if ("${firstItem[1]} ${firstItem[2]}" > "${secondItem[1]} ${secondItem[2]}") {
+                val temp = updateDirResults[index + 1]
+                updateDirResults[index + 1] = updateDirResults[index]
+                updateDirResults[index] = temp
+                check = true
+            }
+        }
+        if (check) {
+            allItemsSorted = true
+        }
+    } while (reachedLimit && !allItemsSorted)
+
+    searchData.updateDirectorySearch(updateDirResults)
     return searchData
 }
 
-fun performJumpSearch(sortedSearchData: SearchData) {
-    TODO()
+fun performJumpSearch(sortedSearchData: SearchData): List<String> {
+    val resultList = mutableListOf<String>()
+    for (item in sortedSearchData.leftToFind) {
+        val index = jumpSearch(sortedSearchData.directoryFile, item)
+        if (index != -1) {
+            resultList.add(sortedSearchData.directoryFile[index])
+        }
+    }
+    return resultList
+}
+
+fun jumpSearch(list: List<String>, value: String): Int {
+    val step = floor(sqrt(list.size.toFloat()))
+    var curr = 1
+    do {
+        val item = list[curr].split(" ")
+        if (list[curr].contains(value)) {
+            return curr
+        } else if ("${item[1]} ${item[2]}" > value) {
+            var ind = curr - 1
+            do {
+                if (list[curr].contains(value)) {
+                    return ind
+                }
+                ind -= 1
+            } while (ind > curr - step && ind >= 1)
+
+            return -1
+        }
+        curr += 1
+    } while (curr <= list.size - 1)
+
+    var ind = list.size - 1
+    do {
+        if (list[ind].contains(value)) {
+            return ind
+        }
+        ind -= 1
+    } while (ind > curr - step)
+
+    return -1
 }
 
 private fun parseInput(): SearchData {
@@ -55,7 +135,7 @@ private fun parseInput(): SearchData {
 
 private fun performLinearSearch(
     searchData: SearchData
-) {
+): Long {
     println("Start searching (linear search)...")
     val startTime = System.currentTimeMillis()
     val result = mutableListOf<String>()
@@ -71,6 +151,7 @@ private fun performLinearSearch(
     val endTime = System.currentTimeMillis()
     val totalTime = endTime - startTime
     println("Found ${searchData.findFile.size} / ${searchData.findFile.size} entries. ${getTime(Time(totalTime).time)}")
+    return totalTime
 }
 
 fun getTime(time: Long): String {
