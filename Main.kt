@@ -154,8 +154,8 @@ private fun performLinearSearch(
     return totalTime
 }
 
-fun getTime(time: Long): String {
-    var result = "Time taken: "
+fun getTime(time: Long, timeTake: Boolean = false): String {
+    var result = if (timeTake) "Time taken: " else ""
     val min = time / 60000
     result += "$min min. "
     val sec = (time - (min * 60000)) / 6000
