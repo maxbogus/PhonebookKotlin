@@ -62,9 +62,9 @@ fun performBubbleSort(searchData: SearchData, limit: Long): SearchData {
             searchData.stopped = true
         }
         for (index in 0..searchData.directoryFile.size - 2) {
-            val firstItem = updateDirResults[index].split(" ")
-            val secondItem = updateDirResults[index + 1].split(" ")
-            if ("${firstItem[1]} ${firstItem[2]}" > "${secondItem[1]} ${secondItem[2]}") {
+            val firstItem = updateDirResults[index].split(" ", limit = 2)
+            val secondItem = updateDirResults[index + 1].split(" ", limit = 2)
+            if (firstItem[1] > secondItem[1]) {
                 val temp = updateDirResults[index + 1]
                 updateDirResults[index + 1] = updateDirResults[index]
                 updateDirResults[index] = temp
@@ -95,10 +95,10 @@ fun jumpSearch(list: List<String>, value: String): Int {
     val step = floor(sqrt(list.size.toFloat()))
     var curr = 1
     do {
-        val item = list[curr].split(" ")
+        val item = list[curr].split(" ", limit = 2)
         if (list[curr].contains(value)) {
             return curr
-        } else if ("${item[1]} ${item[2]}" > value) {
+        } else if (item[1] > value) {
             var ind = curr - 1
             do {
                 if (list[curr].contains(value)) {
