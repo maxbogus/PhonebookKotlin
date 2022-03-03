@@ -6,6 +6,10 @@ import kotlin.math.floor
 import kotlin.math.sqrt
 
 const val PATH_TO_FOLDER = "/"
+const val LIMIT = 10
+const val MILLISECOND_IN_MINUTE = 60000 
+const val MILLISECOND_IN_SEC = 6000
+const val PHONEBOOK_DELIMITER = 2
 
 data class SearchData(
     val findFile: List<String>,
@@ -87,15 +91,15 @@ fun performBubbleSort(searchData: SearchData, limit: Long): SearchData {
     var allItemsSorted = false
     do {
         var check = false
-        for (index in 0..searchData.directoryFile.size - 2) {
-            val reachedLimit = System.currentTimeMillis() - startTimer > limit * 10
+        for (index in 0..searchData.directoryFile.size - PHONEBOOK_DELIMITER) {
+            val reachedLimit = System.currentTimeMillis() - startTimer > limit * LIMIT
             if (reachedLimit) {
                 allItemsSorted = true
                 searchData.stopped = true
                 break
             }
-            val firstItem = updateDirResults[index].split(" ", limit = 2)
-            val secondItem = updateDirResults[index + 1].split(" ", limit = 2)
+            val firstItem = updateDirResults[index].split(" ", limit = PHONEBOOK_DELIMITER)
+            val secondItem = updateDirResults[index + 1].split(" ", limit = PHONEBOOK_DELIMITER)
 
             if (firstItem[1] > secondItem[1]) {
                 val temp = updateDirResults[index + 1]
@@ -128,7 +132,7 @@ fun jumpSearch(list: List<String>, value: String): Int {
     val step = floor(sqrt(list.size.toFloat()))
     var curr = 1
     do {
-        val item = list[curr].split(" ", limit = 2)
+        val item = list[curr].split(" ", limit = PHONEBOOK_DELIMITER)
         if (list[curr].contains(value)) {
             return curr
         } else if (item[1] > value) {
@@ -189,11 +193,11 @@ private fun performLinearSearch(
 
 fun getTime(time: Long, timeTake: Boolean = false): String {
     var result = if (timeTake) "Time taken: " else ""
-    val min = time / 60000
+    val min = time / MILLISECOND_IN_MINUTE
     result += "$min min. "
-    val sec = (time - (min * 60000)) / 6000
+    val sec = (time - (min * MILLISECOND_IN_MINUTE)) / MILLISECOND_IN_SEC
     result += "$sec sec. "
-    val ms = (time - (min * 60000) - (sec * 6000))
+    val ms = (time - (min * MILLISECOND_IN_MINUTE) - (sec * MILLISECOND_IN_SEC))
     result += "$ms ms."
     return result
 }
