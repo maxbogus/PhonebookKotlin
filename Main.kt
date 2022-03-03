@@ -7,7 +7,7 @@ import kotlin.math.sqrt
 
 const val PATH_TO_FOLDER = "/"
 const val LIMIT = 10
-const val MILLISECOND_IN_MINUTE = 60000 
+const val MILLISECOND_IN_MINUTE = 60000
 const val MILLISECOND_IN_SEC = 6000
 const val PHONEBOOK_DELIMITER = 2
 
@@ -15,7 +15,8 @@ data class SearchData(
     val findFile: List<String>,
     val leftToFind: List<String>,
     var directoryFile: List<String>,
-    var stopped: Boolean = false
+    var stopped: Boolean = false,
+    var limit: Long = -1
 ) {
     fun updateDirectorySearch(newDirSearch: List<String>) {
         directoryFile = newDirSearch
@@ -30,13 +31,13 @@ enum class SortType {
 fun main() {
     val searchData = parseInput()
 
-    val limit = performLinearSearch(searchData)
+    performLinearSearch(searchData)
 
-    performSortAndSearch(searchData, limit, SortType.BubbleSortJumpSearch)
-    performSortAndSearch(searchData, limit, SortType.QuickSortBinarySearch)
+    performSortAndSearch(searchData, SortType.BubbleSortJumpSearch)
+    performSortAndSearch(searchData, SortType.QuickSortBinarySearch)
 }
 
-private fun performSortAndSearch(searchData: SearchData, limit: Long, type: SortType) {
+private fun performSortAndSearch(searchData: SearchData, type: SortType) {
     println(
         "Start searching ${
             when (type) {
@@ -47,8 +48,8 @@ private fun performSortAndSearch(searchData: SearchData, limit: Long, type: Sort
     )
     val sortStartTime = System.currentTimeMillis()
     val sortedSearchData = when (type) {
-        SortType.BubbleSortJumpSearch -> performBubbleSort(searchData, limit)
-        SortType.QuickSortBinarySearch -> performQuickSort(searchData, limit)
+        SortType.BubbleSortJumpSearch -> performBubbleSort(searchData)
+        SortType.QuickSortBinarySearch -> performQuickSort(searchData)
     }
     val sortEndTime = System.currentTimeMillis()
     val sortTotalTime = sortEndTime - sortStartTime
@@ -73,7 +74,7 @@ private fun performSortAndSearch(searchData: SearchData, limit: Long, type: Sort
     println("Searching time: ${getTime(Time(jumpSearchTotalTime).time)}")
 }
 
-fun performQuickSort(searchData: SearchData, limit: Long): SearchData {
+fun performQuickSort(searchData: SearchData): SearchData {
     TODO("Not yet implemented")
 }
 
@@ -85,14 +86,14 @@ fun checkStopTime(sortedSearchData: SearchData): String {
     return if (sortedSearchData.stopped) " - STOPPED, moved to linear search" else ""
 }
 
-fun performBubbleSort(searchData: SearchData, limit: Long): SearchData {
+fun performBubbleSort(searchData: SearchData): SearchData {
     val startTimer = System.currentTimeMillis()
     val updateDirResults = searchData.directoryFile.toMutableList()
     var allItemsSorted = false
     do {
         var check = false
         for (index in 0..searchData.directoryFile.size - PHONEBOOK_DELIMITER) {
-            val reachedLimit = System.currentTimeMillis() - startTimer > limit * LIMIT
+            val reachedLimit = System.currentTimeMillis() - startTimer > searchData.limit * LIMIT
             if (reachedLimit) {
                 allItemsSorted = true
                 searchData.stopped = true
@@ -172,7 +173,7 @@ private fun parseInput(): SearchData {
 
 private fun performLinearSearch(
     searchData: SearchData
-): Long {
+) {
     println("Start searching (linear search)...")
     val startTime = System.currentTimeMillis()
     val result = mutableListOf<String>()
@@ -187,8 +188,8 @@ private fun performLinearSearch(
     }
     val endTime = System.currentTimeMillis()
     val totalTime = endTime - startTime
+    searchData.limit = totalTime
     println("Found ${searchData.findFile.size} / ${searchData.findFile.size} entries. ${getTime(Time(totalTime).time)}")
-    return totalTime
 }
 
 fun getTime(time: Long, timeTake: Boolean = false): String {
