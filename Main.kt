@@ -30,11 +30,13 @@ enum class SortType {
 
 fun main() {
     val searchData = parseInput()
+    val secondSearchData = parseInput()
 
     performLinearSearch(searchData)
+    secondSearchData.limit = searchData.limit
 
     performSortAndSearch(searchData, SortType.BubbleSortJumpSearch)
-    performSortAndSearch(searchData, SortType.QuickSortBinarySearch)
+    performSortAndSearch(secondSearchData, SortType.QuickSortBinarySearch)
 }
 
 private fun performSortAndSearch(searchData: SearchData, type: SortType) {
@@ -75,11 +77,59 @@ private fun performSortAndSearch(searchData: SearchData, type: SortType) {
 }
 
 fun performQuickSort(searchData: SearchData): SearchData {
-    TODO("Not yet implemented")
+    searchData.updateDirectorySearch(quickSort(searchData.directoryFile))
+    return searchData
 }
 
+fun quickSort(list: List<String>): List<String> {
+    if (list.size < 2) {
+        return list
+    }
+    val pivot = list[list.size / 2]
+    val secondValue = pivot.split(" ", limit = 2)
+    val equal = mutableListOf<String>()
+    val less = mutableListOf<String>()
+    val greater = mutableListOf<String>()
+    for (item in list) {
+        val firstValue = item.split(" ", limit = 2)
+        if (firstValue[1] < secondValue[1]) {
+            less.add(item)
+        } else if (firstValue[1] > secondValue[1]) {
+            greater.add(item)
+        } else {
+            equal.add(item)
+        }
+    }
+
+    return quickSort(less) + equal + quickSort(greater)
+}
+
+
 fun performBinarySearch(sortedSearchData: SearchData) {
-    TODO("Not yet implemented")
+    val resultList = mutableListOf<String>()
+    for (item in sortedSearchData.leftToFind) {
+        val index = binarySearch(sortedSearchData.directoryFile, item)
+        if (index != -1) {
+            resultList.add(sortedSearchData.directoryFile[index])
+        }
+    }
+}
+
+fun binarySearch(list: List<String>, value: String): Int {
+    var left = 0
+    var right = list.size - 1
+    do {
+        val middle = (left + right) / 2
+        val compareValue = list[middle].split(" ", limit = 2)
+        if (compareValue[1] == value) {
+            return middle
+        } else if (list[middle] > value) {
+            right = middle - 1
+        } else {
+            left = middle + 1
+        }
+    } while (left <= right)
+    return -1
 }
 
 fun checkStopTime(sortedSearchData: SearchData): String {
