@@ -27,11 +27,11 @@ fun main() {
     val sortStartTime = System.currentTimeMillis()
     val sortedSearchData = performBubbleSort(searchData, limit)
     val sortEndTime = System.currentTimeMillis()
-    val sortTotalTime = sortStartTime - sortEndTime
+    val sortTotalTime = sortEndTime - sortStartTime
     val jumpSearchStartTime = System.currentTimeMillis()
     performJumpSearch(sortedSearchData)
     val jumpSearchEndTime = System.currentTimeMillis()
-    val jumpSearchTotalTime = jumpSearchStartTime - jumpSearchEndTime
+    val jumpSearchTotalTime = jumpSearchEndTime - jumpSearchStartTime
     val totalSortSearchTime = sortTotalTime + jumpSearchTotalTime
     println(
         "Found ${sortedSearchData.findFile.size} / ${sortedSearchData.findFile.size} entries. ${
@@ -54,16 +54,18 @@ fun performBubbleSort(searchData: SearchData, limit: Long): SearchData {
     val startTimer = System.currentTimeMillis()
     val updateDirResults = searchData.directoryFile.toMutableList()
     var allItemsSorted = false
-
     do {
         var check = false
-        val reachedLimit = System.currentTimeMillis() - startTimer > limit * 20
-        if (reachedLimit) {
-            searchData.stopped = true
-        }
         for (index in 0..searchData.directoryFile.size - 2) {
+            val reachedLimit = System.currentTimeMillis() - startTimer > limit * 10
+            if (reachedLimit) {
+                allItemsSorted = true
+                searchData.stopped = true
+                break
+            }
             val firstItem = updateDirResults[index].split(" ", limit = 2)
             val secondItem = updateDirResults[index + 1].split(" ", limit = 2)
+
             if (firstItem[1] > secondItem[1]) {
                 val temp = updateDirResults[index + 1]
                 updateDirResults[index + 1] = updateDirResults[index]
@@ -71,10 +73,10 @@ fun performBubbleSort(searchData: SearchData, limit: Long): SearchData {
                 check = true
             }
         }
-        if (check) {
+        if (!check) {
             allItemsSorted = true
         }
-    } while (reachedLimit && !allItemsSorted)
+    } while (!allItemsSorted)
 
     searchData.updateDirectorySearch(updateDirResults)
     return searchData
