@@ -18,18 +18,41 @@ data class SearchData(
     }
 }
 
+enum class SortType {
+    BubbleSortJumpSearch,
+    QuickSortBinarySearch
+}
+
 fun main() {
     val searchData = parseInput()
 
     val limit = performLinearSearch(searchData)
 
-    println("Start searching (bubble sort + jump search)...")
+    performSortAndSearch(searchData, limit, SortType.BubbleSortJumpSearch)
+    performSortAndSearch(searchData, limit, SortType.QuickSortBinarySearch)
+}
+
+private fun performSortAndSearch(searchData: SearchData, limit: Long, type: SortType) {
+    println(
+        "Start searching ${
+            when (type) {
+                SortType.BubbleSortJumpSearch -> "(bubble sort + jump search)"
+                SortType.QuickSortBinarySearch -> "(quick sort + binary search)"
+            }
+        }..."
+    )
     val sortStartTime = System.currentTimeMillis()
-    val sortedSearchData = performBubbleSort(searchData, limit)
+    val sortedSearchData = when (type) {
+        SortType.BubbleSortJumpSearch -> performBubbleSort(searchData, limit)
+        SortType.QuickSortBinarySearch -> performQuickSort(searchData, limit)
+    }
     val sortEndTime = System.currentTimeMillis()
     val sortTotalTime = sortEndTime - sortStartTime
     val jumpSearchStartTime = System.currentTimeMillis()
-    performJumpSearch(sortedSearchData)
+    when (type) {
+        SortType.BubbleSortJumpSearch -> performJumpSearch(sortedSearchData)
+        SortType.QuickSortBinarySearch -> performBinarySearch(sortedSearchData)
+    }
     val jumpSearchEndTime = System.currentTimeMillis()
     val jumpSearchTotalTime = jumpSearchEndTime - jumpSearchStartTime
     val totalSortSearchTime = sortTotalTime + jumpSearchTotalTime
@@ -44,6 +67,14 @@ fun main() {
     )
     println("Sorting time: ${getTime(Time(sortTotalTime).time)}.${checkStopTime(sortedSearchData)}")
     println("Searching time: ${getTime(Time(jumpSearchTotalTime).time)}")
+}
+
+fun performQuickSort(searchData: SearchData, limit: Long): SearchData {
+    TODO("Not yet implemented")
+}
+
+fun performBinarySearch(sortedSearchData: SearchData) {
+    TODO("Not yet implemented")
 }
 
 fun checkStopTime(sortedSearchData: SearchData): String {
