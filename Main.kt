@@ -33,13 +33,15 @@ enum class SortType {
 fun main() {
     val searchData = parseInput()
     val secondSearchData = parseInput()
+    val thirdSearchData = parseInput()
 
     performLinearSearch(searchData)
     secondSearchData.limit = searchData.limit
+    thirdSearchData.limit = searchData.limit
 
     performSortAndSearch(searchData, SortType.BubbleSortJumpSearch)
     performSortAndSearch(secondSearchData, SortType.QuickSortBinarySearch)
-    performSortAndSearch(secondSearchData, SortType.HashTableSearch)
+    performSortAndSearch(thirdSearchData, SortType.HashTableSearch)
 }
 
 private fun performSortAndSearch(searchData: SearchData, type: SortType) {
