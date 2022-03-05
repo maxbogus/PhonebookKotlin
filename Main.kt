@@ -15,6 +15,7 @@ data class SearchData(
     val findFile: List<String>,
     val leftToFind: List<String>,
     var directoryFile: List<String>,
+    val hashMap: HashMap<String, String>,
     var stopped: Boolean = false,
     var limit: Long = -1
 ) {
@@ -25,7 +26,8 @@ data class SearchData(
 
 enum class SortType {
     BubbleSortJumpSearch,
-    QuickSortBinarySearch
+    QuickSortBinarySearch,
+    HashTableSearch
 }
 
 fun main() {
@@ -37,6 +39,7 @@ fun main() {
 
     performSortAndSearch(searchData, SortType.BubbleSortJumpSearch)
     performSortAndSearch(secondSearchData, SortType.QuickSortBinarySearch)
+    performSortAndSearch(secondSearchData, SortType.HashTableSearch)
 }
 
 private fun performSortAndSearch(searchData: SearchData, type: SortType) {
@@ -45,6 +48,7 @@ private fun performSortAndSearch(searchData: SearchData, type: SortType) {
             when (type) {
                 SortType.BubbleSortJumpSearch -> "(bubble sort + jump search)"
                 SortType.QuickSortBinarySearch -> "(quick sort + binary search)"
+                SortType.HashTableSearch -> "(hash table)"
             }
         }..."
     )
@@ -52,6 +56,7 @@ private fun performSortAndSearch(searchData: SearchData, type: SortType) {
     val sortedSearchData = when (type) {
         SortType.BubbleSortJumpSearch -> performBubbleSort(searchData)
         SortType.QuickSortBinarySearch -> performQuickSort(searchData)
+        SortType.HashTableSearch -> prepareHashTable(searchData)
     }
     val sortEndTime = System.currentTimeMillis()
     val sortTotalTime = sortEndTime - sortStartTime
@@ -59,6 +64,7 @@ private fun performSortAndSearch(searchData: SearchData, type: SortType) {
     when (type) {
         SortType.BubbleSortJumpSearch -> performJumpSearch(sortedSearchData)
         SortType.QuickSortBinarySearch -> performBinarySearch(sortedSearchData)
+        SortType.HashTableSearch -> performHashTableSearch(sortedSearchData)
     }
     val jumpSearchEndTime = System.currentTimeMillis()
     val jumpSearchTotalTime = jumpSearchEndTime - jumpSearchStartTime
@@ -72,8 +78,29 @@ private fun performSortAndSearch(searchData: SearchData, type: SortType) {
             )
         }"
     )
-    println("Sorting time: ${getTime(Time(sortTotalTime).time)}.${checkStopTime(sortedSearchData)}")
+    println(
+        "${if (type == SortType.HashTableSearch) "Creating" else "Sorting"} time: ${getTime(Time(sortTotalTime).time)}.${
+            checkStopTime(
+                sortedSearchData
+            )
+        }"
+    )
     println("Searching time: ${getTime(Time(jumpSearchTotalTime).time)}")
+}
+
+fun performHashTableSearch(sortedSearchData: SearchData) {
+    val resultList = mutableListOf<String>()
+    for (item in sortedSearchData.leftToFind) {
+        sortedSearchData.hashMap[item]?.let { resultList.add(it) }
+    }
+}
+
+fun prepareHashTable(searchData: SearchData): SearchData {
+    for (item in searchData.directoryFile) {
+        val values = item.split(" ", limit = 2)
+        searchData.hashMap[values[1]] = values[0]
+    }
+    return searchData
 }
 
 fun performQuickSort(searchData: SearchData): SearchData {
@@ -218,7 +245,7 @@ private fun parseInput(): SearchData {
         leftToFind.add(item)
     }
     val directoryFile = File("${PATH_TO_FOLDER}directory.txt").readLines()
-    return SearchData(findFile, leftToFind, directoryFile)
+    return SearchData(findFile, leftToFind, directoryFile, hashMapOf<String, String>())
 }
 
 private fun performLinearSearch(
